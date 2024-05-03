@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/nats-io/nats.go"
 )
 
 type Response struct {
@@ -12,6 +14,16 @@ type Response struct {
 }
 
 func main() {
+	nc, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		log.Fatal("Error connecting to NATS server")
+	}
+	defer nc.Close()
+
+	nc.Subscribe("updates", func(m *nats.Msg) {
+		log.Printf("Received a message: %s\n", string(m.Data))
+	})
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		response := Response{
 			Message: "Hello World!",
